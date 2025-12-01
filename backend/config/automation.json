@@ -1,0 +1,8 @@
+{
+  "auto_act_on_response": false,
+  "auto_classify_responses": true,
+  "auto_unsubscribe_on_request": true,
+  "auto_rotate_inboxes": false,
+  "auto_adjust_send_times": false,
+  "auto_pause_risky_campaigns": true
+}

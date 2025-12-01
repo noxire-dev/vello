@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "start_volume": 5,
+  "max_volume": 50,
+  "daily_increase": 2,
+  "warmup_duration_days": 30,
+  "min_delay_minutes": 60,
+  "max_delay_minutes": 240,
+  "reply_rate_target": 0.15,
+  "bounce_rate_threshold": 0.05,
+  "spam_complaint_threshold": 0.01
+}

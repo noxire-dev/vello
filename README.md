@@ -1,47 +1,73 @@
-# Vello – Email Outreach System (MVP)
+# Vello – Automation-First Email Outreach System (MVP)
 
-**Vello** is a purpose-built email outreach system originally developed for internal use at **NovaLare**. It provides a minimal but extensible foundation for building, scheduling, and analyzing cold email campaigns. The project is released under a **source-available license**, allowing community review and contributions while prohibiting commercial use or hosting Vello as a service.
+**Vello** is an automation-first email outreach engine developed by **NovaLare**.
+It is designed to handle cold email campaigns programmatically, with an emphasis on:
 
-This repository is intended as an early-stage MVP to support internal outreach workflows and serve as the foundation for a future standalone SaaS product.
+- automated decision-making
+- deliverability-safe sending patterns
+- dynamic campaign logic
+- smart response handling
+
+Vello was originally built as an internal outreach system but is released as a **source-available project** to support transparency, community feedback, and future open-core development.
+
+A dedicated web interface (Next.js) is planned as part of the roadmap, allowing non-technical users to manage campaigns visually.
 
 ---
 
-## Features
+## Key Concepts
 
-- **Multi-step Campaigns**
-  Create sequential outreach flows with configurable delays between steps.
+### Automation-First Architecture
 
-- **Lead and Recipient Management**
-  Import and manage leads with structured variables for template substitution.
+Vello is built around a set of configurable automation behaviors.
+These control how the system:
 
-- **Email Delivery Tracking**
-  Log send attempts, results, and errors for each email sent.
+- classifies and reacts to email responses
+- rotates between sending inboxes
+- generates plaintext versions of email bodies
+- adjusts sending times and pacing
+- warms up inboxes gradually
+- cleans or maintains email lists
 
-- **Response Analysis**
-  Detect intent in replies using basic linguistic classification.
+This approach allows Vello to operate closer to a "programmatic SDR," reducing manual workload and making high-volume outreach safer and more consistent.
 
-- **Template Rendering**
-  Jinja2-based HTML/text templates with variable injection.
+### Extensible Campaign System
 
-- **Lightweight Data Layer**
-  SQLite-backed storage suitable for local development and small deployments.
+Campaigns consist of a sequence of steps, each with its own timing, subject, and template.
+Vello is designed to be extended into more advanced workflows, including conditional branching, nurturing paths, and adaptive follow-up logic.
+
+### Transparent and Source-Available
+
+The application is source-available for review, auditing, and contribution.
+Self-hosting for personal or internal use is permitted, while commercial hosting or resale is restricted by the Vello Source-Available License.
 
 ---
 
 ## Project Structure
 
+This is a monorepo structure separating the Python backend and Next.js frontend:
+
 ```
 vello/
-├── models.py               # SQLAlchemy ORM models
-├── db.py                   # Database session handling and initialization
-├── config.py               # Environment-driven configuration loader
-├── analysis.py             # Response intent analysis
-├── template_loader.py      # Email template rendering utilities
-├── api/
-│   └── add_new_lead.py     # Example API endpoint for managing leads
-├── email/                  # Email sending and delivery utilities
-├── templates/              # Email templates
-└── examples/               # Example scripts and usage patterns
+├── backend/                    # Python backend
+│   ├── .env                    # Environment variables
+│   ├── requirements.txt        # Python dependencies
+│   ├── setup.py                # Package installation config
+│   ├── src/
+│   │   └── vello/              # Main package
+│   │       ├── core/           # Database, models, config
+│   │       ├── services/       # Business logic
+│   │       ├── utils/          # Utility functions
+│   │       ├── email/          # Email sending providers
+│   │       └── api/            # REST API endpoints
+│   ├── examples/               # Usage examples
+│   └── templates/              # Email templates
+└── frontend/                   # Next.js web GUI (planned)
+    ├── src/
+    │   ├── app/                # Next.js App Router
+    │   ├── components/         # React components
+    │   ├── lib/                # Utilities and API client
+    │   └── types/              # TypeScript types
+    └── public/                 # Static assets
 ```
 
 ---
@@ -62,154 +88,127 @@ git clone <your-repo-url>
 cd vello
 ```
 
-Install dependencies:
+Navigate to the backend directory and install dependencies:
 
 ```bash
+cd backend
 pip install -r requirements.txt
+```
+
+Install the package in development mode:
+
+```bash
+pip install -e .
 ```
 
 Copy and configure environment variables:
 
 ```bash
 cp .env.example .env
-```
-
-Example `.env` configuration:
-
-```env
-DATABASE_URL=sqlite:///vello.db
-DEBUG=True
-
-EMAIL_PROVIDER=smtp
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=your_email@gmail.com
-EMAIL_HOST_PASSWORD=your_app_password
-EMAIL_USE_TLS=True
-
-SYSTEM_AUTO_ACT_ON_RESPONSE=False
-SYSTEM_AUTO_ROTATE_INBOX=False
-SYSTEM_AUTO_GENERATE_TXT_FROM_HTML=False
+# Edit .env with your configuration
 ```
 
 Initialize the database:
 
 ```python
-from db import init_db
+from vello.core.db import init_db
 init_db()
 ```
 
 ---
 
-## Usage Examples
-
-### Creating a Campaign
-
-```python
-from db import get_session
-from models import Campaign, CampaignStep
-
-with get_session() as session:
-    campaign = Campaign(name="Initial Outreach")
-
-    step = CampaignStep(
-        campaign=campaign,
-        position=0,
-        delay_minutes=0,
-        subject="Introduction",
-        body_html="<p>Hello {{name}},</p>"
-    )
-
-    session.add(campaign)
-    session.commit()
-```
-
-### Adding a Recipient
-
-```python
-from db import get_session
-from models import Recipient
-
-with get_session() as session:
-    recipient = Recipient(
-        campaign_id=1,
-        email="lead@example.com",
-        name="John Doe",
-        vars_json='{"company": "Acme Corp"}'
-    )
-    session.add(recipient)
-    session.commit()
-```
-
-### Analyzing a Response
-
-```python
-from analysis import analyze_response_intent
-
-print(analyze_response_intent(
-    "Thanks for reaching out — I'm interested in learning more."
-))
-```
-
----
-
-## Database Models
-
-- **Campaign** – Overall outreach sequence container.
-- **CampaignStep** – Individual email steps with timing and content.
-- **Recipient** – Lead data and template variables.
-- **Delivery** – Logs for each email send attempt.
-- **Response** – Stored replies with intent classification.
-
----
-
 ## Configuration
 
-All application settings are defined in `.env`. See the included example file for defaults and documentation.
+All configuration is managed through `backend/.env`.
+
+Vello exposes both standard system settings (database, SMTP configuration, debug mode) and a set of **automation flags** that control intelligent behavior. Examples include:
+
+- automatically classifying replies (positive, neutral, negative)
+- unsubscribing leads who request removal
+- rotating sender inboxes
+- adjusting send times to recipient local time
+- protecting deliverability by pausing risky campaigns
+- warming up inboxes with safe volume increases
+
+These automation controls allow Vello to function with minimal human intervention while maintaining safe sending practices.
 
 ---
 
-## Development
+## Usage Examples
 
-### Running Tests
+### Running Example Scripts
+
+From the `backend` directory:
 
 ```bash
-pytest
+# Test intent analysis
+python examples/test_analysis.py
+
+# Test template loading
+python examples/example_template_usage.py
+
+# Test email sending (requires .env configuration)
+python examples/example_email_usage.py
 ```
 
-### Database Migrations
+### Using the Package
 
-This MVP uses basic SQLAlchemy models without a migration layer. For production usage, integrating Alembic is recommended.
+```python
+from vello.core.db import init_db, get_db
+from vello.core.models import Campaign, Recipient
+from vello.services import analyze_intent
+from vello.utils import get_template_loader
+from vello.email import get_email_provider
+
+# Initialize database
+init_db()
+
+# Use services
+intent = analyze_intent("Yes, I'm interested!")
+
+# Load templates
+loader = get_template_loader()
+html, text = loader.render_email("welcome_series/initial_outreach", {"name": "John"})
+
+# Send emails
+provider = get_email_provider()
+result = provider.send_email(
+    to="user@example.com",
+    subject="Hello",
+    body_text="Test email"
+)
+```
 
 ---
 
 ## Roadmap
 
-- Web dashboard for campaign creation and monitoring
-- Delivery analytics and improved reporting
-- Support for additional email providers (SES, SendGrid, Mailgun)
-- A/B template testing
-- Webhooks for delivery events
-- Automated sending throttles and rate limits
-- Unsubscribe and compliance management
-- Inbox rotation and domain warmup features
+- Next.js web interface for managing campaigns
+- Inbox rotation management via UI
+- Delivery analytics and reporting
+- Additional email provider support (SES, Mailgun, SendGrid)
+- Template versioning and A/B testing
+- Advanced follow-up and branching logic
+- Webhooks and event relay
+- Automated send-time optimization
+- Smart lead enrichment
+- Full open-core model for community extensibility
 
 ---
 
 ## License
 
-Vello is released under the **Vello Source Available License**, which allows personal and internal business use, modification, and contributions, but restricts commercial use, resale, and hosting Vello as a service.
-See **LICENSE** for full terms.
+Vello is released under the **Vello Source-Available License**, allowing personal and internal use, modification, and contribution, while prohibiting commercial resale or offering Vello as a hosted service.
+See the **LICENSE** file for details.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please submit issues or pull requests via GitHub.
-Before contributing, review the LICENSE and ensure your usage aligns with permitted use.
+Feedback, suggestions, and pull requests are welcome. Before contributing, review the license to ensure your use case aligns with permitted usage.
 
 ---
 
 ## Support
 
-For questions, feedback, or issues, open a GitHub issue.
+For issues or inquiries, please open a GitHub issue.
