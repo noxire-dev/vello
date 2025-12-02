@@ -1,18 +1,23 @@
 """
 Campaign Manager - Orchestrates campaign execution, scheduling, and follow-ups.
 """
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session
 
+from vello.core import config, db
 from vello.core.models import (
-    Campaign, CampaignStep, Recipient, Delivery, DeliveryStatus, ResponseStatus
+    Campaign,
+    CampaignStep,
+    Delivery,
+    DeliveryStatus,
+    Recipient,
+    ResponseStatus,
 )
-from vello.core import db
-from vello.core import config
 from vello.email import EmailProvider, EmailResult
-from vello.utils import TemplateLoader
 from vello.services import analyze_intent
+from vello.utils import TemplateLoader
 
 
 class CampaignManager:
@@ -91,7 +96,7 @@ class CampaignManager:
 
             session.commit()
             return campaign
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
 
@@ -140,7 +145,7 @@ class CampaignManager:
 
             session.commit()
             return count
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
 
@@ -222,7 +227,7 @@ class CampaignManager:
 
             session.commit()
             return sent_count
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
 
@@ -327,7 +332,7 @@ class CampaignManager:
 
             session.commit()
             return status
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
 
@@ -441,6 +446,6 @@ class CampaignManager:
 
             session.commit()
             return count
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
