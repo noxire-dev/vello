@@ -1,10 +1,13 @@
 """
 Template loader using Jinja2 for email templates.
 """
+
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Optional, Dict, Any
 import os
+
+from vello.utils.html_to_text import html_to_text
 
 # Template directory - now relative to backend directory
 # From backend/src/vello/utils/template_loader.py -> backend/templates
@@ -25,16 +28,12 @@ class TemplateLoader:
         self.template_dir = template_dir or TEMPLATE_DIR
         self.env = Environment(
             loader=FileSystemLoader(str(self.template_dir)),
-            autoescape=select_autoescape(['html', 'xml']),
+            autoescape=select_autoescape(["html", "xml"]),
             trim_blocks=True,
-            lstrip_blocks=True
+            lstrip_blocks=True,
         )
 
-    def render(
-        self,
-        template_path: str,
-        variables: Dict[str, Any]
-    ) -> str:
+    def render(self, template_path: str, variables: Dict[str, Any]) -> str:
         """
         Render a template with the given variables.
 
@@ -50,10 +49,7 @@ class TemplateLoader:
         return template.render(**variables)
 
     def render_email(
-        self,
-        template_name: str,
-        variables: Dict[str, Any],
-        include_text: bool = True
+        self, template_name: str, variables: Dict[str, Any], include_text: bool = True
     ) -> tuple[str, Optional[str]]:
         """
         Render both HTML and text versions of an email template.
@@ -76,8 +72,8 @@ class TemplateLoader:
             try:
                 text_content = self.render(text_path, variables)
             except Exception:
-                # If no .txt file exists, that's okay
-                pass
+                # If no .txt file exists, generate from HTML
+                text_content = html_to_text(html_content)
 
         return html_content, text_content
 
@@ -97,7 +93,7 @@ class TemplateLoader:
         for file_path in search_dir.rglob("*.html"):
             relative_path = file_path.relative_to(self.template_dir)
             # Remove .html extension
-            template_name = str(relative_path).replace('.html', '')
+            template_name = str(relative_path).replace(".html", "")
             templates.append(template_name)
 
         return sorted(templates)
@@ -105,6 +101,7 @@ class TemplateLoader:
 
 # Singleton instance
 _loader = None
+
 
 def get_template_loader() -> TemplateLoader:
     """Get the global template loader instance."""

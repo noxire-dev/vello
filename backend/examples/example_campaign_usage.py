@@ -1,8 +1,10 @@
 """
 Example usage of the CampaignManager.
 """
+
 import sys
 from pathlib import Path
+
 
 # Add backend/src to path so we can import vello package
 backend_src = Path(__file__).parent.parent / "src"
@@ -31,20 +33,20 @@ def example_create_and_run_campaign():
         name="Welcome Series Campaign",
         steps=[
             {
-                'position': 0,
-                'delay_minutes': 0,  # Send immediately
-                'subject': 'Welcome to Vello!',
-                'body_text': 'Hi {{name}}, welcome to Vello!',
-                'body_html': '<h1>Welcome {{name}}!</h1><p>Thanks for joining Vello.</p>'
+                "position": 0,
+                "delay_minutes": 0,  # Send immediately
+                "subject": "Welcome to Vello!",
+                "body_text": "Hi {{name}}, welcome to Vello!",
+                "body_html": "<h1>Welcome {{name}}!</h1><p>Thanks for joining Vello.</p>",
             },
             {
-                'position': 1,
-                'delay_minutes': 1440,  # 24 hours later
-                'subject': 'Follow-up: How can we help?',
-                'body_text': 'Hi {{name}}, just checking in. How can we help?',
-                'body_html': '<p>Hi {{name}},</p><p>Just checking in. How can we help?</p>'
-            }
-        ]
+                "position": 1,
+                "delay_minutes": 1440,  # 24 hours later
+                "subject": "Follow-up: How can we help?",
+                "body_text": "Hi {{name}}, just checking in. How can we help?",
+                "body_html": "<p>Hi {{name}},</p><p>Just checking in. How can we help?</p>",
+            },
+        ],
     )
     print(f"✓ Campaign created with ID: {campaign.id}")
 
@@ -52,8 +54,8 @@ def example_create_and_run_campaign():
     print("\nAdding recipients...")
     count = manager.add_recipients(
         campaign_id=campaign.id,
-        emails=['test1@example.com', 'test2@example.com'],
-        names={'test1@example.com': 'John Doe', 'test2@example.com': 'Jane Smith'}
+        emails=["test1@example.com", "test2@example.com"],
+        names={"test1@example.com": "John Doe", "test2@example.com": "Jane Smith"},
     )
     print(f"✓ Added {count} recipients")
 
@@ -80,9 +82,9 @@ def example_create_and_run_campaign():
     # Example: Handle a response
     print("\nHandling example response...")
     status = manager.handle_response(
-        recipient_email='test1@example.com',
-        content='Yes, I am interested!',
-        delivery_id=None
+        recipient_email="test1@example.com",
+        content="Yes, I am interested!",
+        delivery_id=None,
     )
     print(f"✓ Response classified as: {status.value}")
 
@@ -95,4 +97,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()

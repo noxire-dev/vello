@@ -1,3 +1,4 @@
 sqlalchemy
 python-dotenv
 jinja2
+html2text

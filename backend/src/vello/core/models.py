@@ -17,10 +17,12 @@ from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
+
 class DeliveryStatus(enum.Enum):
     PENDING = "pending"
     SENT = "sent"
     FAILED = "failed"
+
 
 class ResponseStatus(enum.Enum):
     PENDING = "pending"
@@ -41,8 +43,16 @@ class Campaign(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    steps = relationship("CampaignStep", back_populates="campaign", cascade="all, delete-orphan", order_by="CampaignStep.position")
-    recipients = relationship("Recipient", back_populates="campaign", cascade="all, delete-orphan")
+    steps = relationship(
+        "CampaignStep",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+        order_by="CampaignStep.position",
+    )
+    recipients = relationship(
+        "Recipient", back_populates="campaign", cascade="all, delete-orphan"
+    )
+
 
 class CampaignStep(Base):
     __tablename__ = "campaign_step"
@@ -55,9 +65,12 @@ class CampaignStep(Base):
     body_html = Column(Text, nullable=True)
 
     campaign = relationship("Campaign", back_populates="steps")
-    deliveries = relationship("Delivery", back_populates="step", cascade="all, delete-orphan")
+    deliveries = relationship(
+        "Delivery", back_populates="step", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (UniqueConstraint("campaign_id", "position", name="uq_step_pos"),)
+
 
 class Recipient(Base):
     __tablename__ = "recipient"
@@ -70,19 +83,30 @@ class Recipient(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     campaign = relationship("Campaign", back_populates="recipients")
-    deliveries = relationship("Delivery", back_populates="recipient", cascade="all, delete-orphan")
+    deliveries = relationship(
+        "Delivery", back_populates="recipient", cascade="all, delete-orphan"
+    )
 
     # Prevent same email in same campaign
-    __table_args__ = (UniqueConstraint("campaign_id", "email", name="uq_campaign_recipient_email"),)
+    __table_args__ = (
+        UniqueConstraint("campaign_id", "email", name="uq_campaign_recipient_email"),
+    )
+
 
 class Delivery(Base):
     __tablename__ = "delivery"
     id = Column(Integer, primary_key=True)
     # Link to specific step ID for safety, not just position
-    step_id = Column(Integer, ForeignKey("campaign_step.id"), nullable=False, index=True)
-    recipient_id = Column(Integer, ForeignKey("recipient.id"), nullable=False, index=True)
+    step_id = Column(
+        Integer, ForeignKey("campaign_step.id"), nullable=False, index=True
+    )
+    recipient_id = Column(
+        Integer, ForeignKey("recipient.id"), nullable=False, index=True
+    )
 
-    status = Column(Enum(DeliveryStatus), nullable=False, default=DeliveryStatus.PENDING)
+    status = Column(
+        Enum(DeliveryStatus), nullable=False, default=DeliveryStatus.PENDING
+    )
     last_error = Column(Text, nullable=True)
     sent_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -93,16 +117,23 @@ class Delivery(Base):
     recipient = relationship("Recipient", back_populates="deliveries")
 
     # Ensure one delivery record per recipient per step
-    __table_args__ = (UniqueConstraint("recipient_id", "step_id", name="uq_recipient_step"),)
+    __table_args__ = (
+        UniqueConstraint("recipient_id", "step_id", name="uq_recipient_step"),
+    )
+
 
 class Response(Base):
     __tablename__ = "response"
     id = Column(Integer, primary_key=True)
-    recipient_id = Column(Integer, ForeignKey("recipient.id"), nullable=False, index=True)
+    recipient_id = Column(
+        Integer, ForeignKey("recipient.id"), nullable=False, index=True
+    )
     delivery_id = Column(Integer, ForeignKey("delivery.id"), nullable=True, index=True)
 
     content = Column(Text, nullable=False)
-    status = Column(Enum(ResponseStatus), nullable=False, default=ResponseStatus.PENDING)
+    status = Column(
+        Enum(ResponseStatus), nullable=False, default=ResponseStatus.PENDING
+    )
     created_at = Column(DateTime, default=datetime.utcnow)
 
     recipient = relationship("Recipient")
@@ -127,7 +158,9 @@ class Lead(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     __table_args__ = (UniqueConstraint("email", name="uq_lead_email"),)
 
+
 class OutboundMailbox(Base):
+    __tablename__ = "outbound_mailbox"
     id = Column(Integer, primary_key=True)
     label = Column(String)  # "John - Gmail #1" (optional)
     email_address = Column(String, unique=True)
@@ -155,7 +188,6 @@ class OutboundMailbox(Base):
     disabled = Column(Boolean, default=False)
     failure_count = Column(Integer, default=0)
 
-    __table_args__ = (UniqueConstraint("email_address", name="uq_outbound_mailbox_email_address"),)
-
-    def get_remaining_sends(self) -> int:
-        return self.daily_limit - self.sends_today
+    __table_args__ = (
+        UniqueConstraint("email_address", name="uq_outbound_mailbox_email_address"),
+    )

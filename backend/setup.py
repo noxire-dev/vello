@@ -1,6 +1,7 @@
 """
 Setup configuration for Vello package.
 """
+
 from setuptools import find_packages, setup
 
 setup(
@@ -15,5 +16,6 @@ setup(
         "sqlalchemy",
         "python-dotenv",
         "jinja2",
+        "html2text",
     ],
 )
