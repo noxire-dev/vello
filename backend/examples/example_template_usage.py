@@ -1,6 +1,7 @@
 """
 Example of using the template loader.
 """
+
 import sys
 from pathlib import Path
 
@@ -15,22 +16,21 @@ loader = get_template_loader()
 
 # Example variables (would come from Recipient.vars_json in real usage)
 variables = {
-    "name": "John Doe",
+    "name": "Sina Dilek",
     "company": "Acme Corp",
-    "product_name": "Nexlio",
+    "product_name": "Vello",
     "benefit_1": "Automate your outreach campaigns",
     "benefit_2": "Track engagement and responses",
     "benefit_3": "Increase conversion rates by 3x",
-    "sender_name": "Jane Smith",
-    "sender_title": "Sales Director",
-    "sender_company": "Nexlio",
-    "unsubscribe_link": "https://nexlio.com/unsubscribe?id=123"
+    "sender_name": "Sina Dilek",
+    "sender_title": "CTO",
+    "sender_company": "Vello",
+    "unsubscribe_link": "https://vello.com/unsubscribe?id=123",
 }
 
 # Render both HTML and text versions
 html_content, text_content = loader.render_email(
-    "welcome_series/initial_outreach",
-    variables
+    "vello_promo/initial_outreach", variables
 )
 
 print("=== HTML Version ===")
